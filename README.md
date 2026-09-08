@@ -2,6 +2,12 @@
 
 A machine learning web application that predicts traffic conditions from vehicle-count and time-related inputs using a Random Forest classifier.
 
+
+## Application Preview
+
+![Traffic Situation Predictor Application](traffic-app.png)
+
+
 ## Overview
 
 This project demonstrates an end-to-end machine learning workflow for traffic situation prediction.
