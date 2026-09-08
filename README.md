@@ -5,7 +5,7 @@ A machine learning web application that predicts traffic conditions from vehicle
 
 ## Application Preview
 
-![Traffic Situation Predictor Application](traffic-app.png)
+![Traffic Situation Predictor Application](traffic-prediction-app.png)
 
 
 ## Overview
