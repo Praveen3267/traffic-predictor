@@ -1,51 +1,109 @@
-
 import streamlit as st
 import numpy as np
 import joblib
-from datetime import datetime
+
+
+st.set_page_config(
+    page_title="Traffic Situation Predictor",
+    page_icon="🚦",
+    layout="centered"
+)
+
+
+@st.cache_resource
+def load_models():
+    scaler = joblib.load("scaler.pkl")
+    model = joblib.load("random_forest_model.pkl")
+    return model, scaler
+
+
+model, scaler = load_models()
+
 
 st.title("🚦 Traffic Situation Predictor")
+st.write(
+    "Predict traffic conditions using vehicle counts and day of the week."
+)
 
-# Input fields
-date = st.date_input("Date")
-time_input = st.time_input("Time")
-day_of_week = st.selectbox("Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-car = st.number_input("Car Count", min_value=0)
-bike = st.number_input("Bike Count", min_value=0)
-bus = st.number_input("Bus Count", min_value=0)
-truck = st.number_input("Truck Count", min_value=0)
 
-submitted = st.button("Predict Traffic")
+day_mapping = {
+    "Friday": 0,
+    "Monday": 1,
+    "Saturday": 2,
+    "Sunday": 3,
+    "Thursday": 4,
+    "Tuesday": 5,
+    "Wednesday": 6
+}
 
-if submitted:
+
+day_of_week = st.selectbox(
+    "Day of the Week",
+    list(day_mapping.keys())
+)
+
+car = st.number_input(
+    "Car Count",
+    min_value=0,
+    value=10,
+    step=1
+)
+
+bike = st.number_input(
+    "Bike Count",
+    min_value=0,
+    value=5,
+    step=1
+)
+
+bus = st.number_input(
+    "Bus Count",
+    min_value=0,
+    value=2,
+    step=1
+)
+
+truck = st.number_input(
+    "Truck Count",
+    min_value=0,
+    value=3,
+    step=1
+)
+
+
+if st.button("Predict Traffic"):
     try:
-        # Encode day of week
-        day_mapping = {
-            "Monday": 0,
-            "Tuesday": 1,
-            "Wednesday": 2,
-            "Thursday": 3,
-            "Friday": 4,
-            "Saturday": 5,
-            "Sunday": 6
-        }
         day_encoded = day_mapping[day_of_week]
 
-        # Calculate total vehicles
         total = car + bike + bus + truck
 
-        # Prepare features (must match the 6 used in training)
-        features = np.array([[day_encoded, car, bike, bus, truck, total]])
+        features = np.array([[
+            day_encoded,
+            car,
+            bike,
+            bus,
+            truck,
+            total
+        ]])
 
-        # Load scaler and model
-        scaler = joblib.load("scaler.pkl")
-        model = joblib.load("random_forest_model.pkl")
-
-        # Scale and predict
         scaled_features = scaler.transform(features)
-        prediction = model.predict(scaled_features)[0]
 
-        st.success(f"🚗 Predicted Traffic Situation: **{prediction}**")
+        prediction = model.predict(scaled_features)[0]
+        probabilities = model.predict_proba(scaled_features)[0]
+
+        confidence = float(np.max(probabilities) * 100)
+
+        st.success(
+            f"🚗 Predicted Traffic Situation: **{prediction}**"
+        )
+
+        st.info(
+            f"Prediction confidence: **{confidence:.2f}%**"
+        )
+
+        st.caption(
+            f"Total vehicles: {total}"
+        )
+
     except Exception as e:
         st.error(f"Something went wrong: {e}")
-
